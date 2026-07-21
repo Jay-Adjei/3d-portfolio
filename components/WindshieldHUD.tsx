@@ -16,25 +16,28 @@ type WindshieldHUDProps = {
  * Coordinate notes (from Leva calibration):
  *   Camera   : [-16.7, 20.3, 8.6]
  *   Target   : [-51.9, 21.8, 124.6]
- *   Look dir : roughly (-0.29, 0.01, 0.96) → predominantly +Z, slight -X
+ *   Look dir : normalised ≈ (-0.29, 0.01, 0.96)
  *
- * The HUD group is placed ~40 units forward along the look vector from the camera,
- * positioned just behind the windshield glass. The Y-axis rotation of ~2.85 rad
- * (≈163°) faces the plane back at the camera with a slight horizontal angle
- * matching the driver-side offset. A small negative X rotation (~-0.08) tilts
- * the top of the panel away from the driver — mimicking windshield rake.
+ * Bug 3 fix — rotation:
+ *   Y = Math.PI (exactly 180°) so the Html front face directly faces the camera.
+ *   The previous value of 2.85 rad (≈163°) left the plane 17° short, causing
+ *   the text to be viewed from the back side → mirrored.
+ *   X = -0.1 rad adds a slight backward tilt to match windshield rake.
+ *
+ * Position [-35, 25, 55] is ~45 units along the look vector from the camera,
+ * sitting flush with the windshield glass.
  */
 export default function WindshieldHUD({ activeSection, setActiveSection }: WindshieldHUDProps) {
   return (
     <group
-      position={[-28, 25.5, 48]}
-      rotation={[-0.08, 2.85, 0]}
+      position={[-35, 25, 55]}
+      rotation={[-0.1, Math.PI, 0]}
     >
       <Html
         transform
-        distanceFactor={28}
+        distanceFactor={38}
         style={{
-          width: "720px",
+          width: "880px",
           pointerEvents: "auto",
           userSelect: "none",
         }}
