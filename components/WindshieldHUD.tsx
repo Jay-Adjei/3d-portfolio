@@ -11,85 +11,72 @@ type WindshieldHUDProps = {
 };
 
 /**
- * Diegetic HUD projected onto the windshield in 3D world-space.
+ * Diegetic automotive HUD — content projected onto the windshield glass.
  *
- * Coordinate notes (from Leva calibration):
- *   Camera   : [-16.7, 20.3, 8.6]
- *   Target   : [-51.9, 21.8, 124.6]
- *   Look dir : normalised ≈ (-0.29, 0.01, 0.96)
- *
- * Bug 3 fix — rotation:
- *   Y = Math.PI (exactly 180°) so the Html front face directly faces the camera.
- *   The previous value of 2.85 rad (≈163°) left the plane 17° short, causing
- *   the text to be viewed from the back side → mirrored.
- *   X = -0.1 rad adds a slight backward tilt to match windshield rake.
- *
- * Position [-35, 25, 55] is ~45 units along the look vector from the camera,
- * sitting flush with the windshield glass.
+ * Geometry:
+ *   position [-32, 22, 45] — anchored where the dashboard meets the windshield.
+ *   rotation [-0.4, PI, 0] — X tilts the plane ~23° backward to match the
+ *     windshield rake. Y = PI faces it toward the driver camera.
+ *   distanceFactor 18 — keeps the HUD compact in the upper-mid windshield,
+ *     leaving the steering wheel and gauges completely unobstructed.
  */
 export default function WindshieldHUD({ activeSection, setActiveSection }: WindshieldHUDProps) {
   return (
     <group
-      position={[-35, 25, 55]}
-      rotation={[-0.1, Math.PI, 0]}
+      position={[-32, 22, 45]}
+      rotation={[-0.4, Math.PI, 0]}
     >
       <Html
         transform
-        distanceFactor={38}
+        distanceFactor={18}
         style={{
-          width: "880px",
+          width: "660px",
           pointerEvents: "auto",
           userSelect: "none",
         }}
         className="hud-root"
       >
-        <div className="hud-container">
-          {/* ── Decorative top bar ── */}
-          <div className="hud-topbar">
-            <div className="hud-topbar-left">
-              <span className="hud-dot" />
-              <span className="hud-system-text">SYS::PORTFOLIO v1.0</span>
-            </div>
-            <div className="hud-topbar-right">
-              <span className="hud-system-text">
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
+        <div className="hud-frame">
+          {/* ── Top accent line ── */}
+          <div className="hud-edge-line" />
+
+          {/* ── System bar ── */}
+          <div className="hud-sysbar">
+            <span className="hud-sys-dot" />
+            <span className="hud-sys-label">SYS::PORTFOLIO</span>
+            <span className="hud-sys-spacer" />
+            <span className="hud-sys-label">
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
           </div>
 
-          {/* ── Navigation ── */}
-          <nav className="hud-nav">
+          {/* ── Nav strip ── */}
+          <nav className="hud-nav-strip">
             {(["home", "about", "projects", "contact"] as Section[]).map((s) => (
               <button
                 key={s}
                 onClick={() => setActiveSection(s)}
-                className={`hud-nav-btn ${activeSection === s ? "active" : ""}`}
+                className={`hud-nav-pill ${activeSection === s ? "on" : ""}`}
               >
-                <span className="hud-nav-icon">
-                  {s === "home" && "⌂"}
-                  {s === "about" && "◉"}
-                  {s === "projects" && "◫"}
-                  {s === "contact" && "✉"}
-                </span>
                 {s.toUpperCase()}
               </button>
             ))}
           </nav>
 
           {/* ── Content ── */}
-          <div className="hud-content">
+          <div className="hud-body">
             {activeSection === "home" && <HomeView setActiveSection={setActiveSection} />}
             {activeSection === "about" && <AboutView />}
             {activeSection === "projects" && <ProjectsView />}
             {activeSection === "contact" && <ContactView />}
           </div>
 
-          {/* ── Decorative bottom scanline ── */}
-          <div className="hud-scanline" />
+          {/* ── Bottom accent line ── */}
+          <div className="hud-edge-line bottom" />
         </div>
       </Html>
     </group>
@@ -97,76 +84,71 @@ export default function WindshieldHUD({ activeSection, setActiveSection }: Winds
 }
 
 /* ═══════════════════════════════════════════
-   SECTION VIEWS
+   VIEWS
    ═══════════════════════════════════════════ */
 
 function HomeView({ setActiveSection }: { setActiveSection: (s: Section) => void }) {
   return (
-    <div className="hud-home">
-      <p className="hud-label">WELCOME TO MY PORTFOLIO</p>
-      <h1 className="hud-title">
-        Hi, I'm <span className="hud-gradient-text">a Developer</span>
+    <div className="hud-view-home">
+      <p className="hud-eyebrow">WELCOME TO MY PORTFOLIO</p>
+      <h1 className="hud-hero">
+        Hi, I'm <span className="hud-glow-text">a Developer</span>
       </h1>
-      <p className="hud-subtitle">
-        I craft immersive digital experiences with cutting-edge web technologies.
-        <br />
-        Navigate the HUD to explore my work.
+      <p className="hud-dim">
+        Immersive digital experiences built with cutting-edge web tech.
       </p>
-      <div className="hud-actions">
-        <button onClick={() => setActiveSection("projects")} className="hud-btn hud-btn-primary">
+      <div className="hud-row gap-8">
+        <button onClick={() => setActiveSection("projects")} className="hud-cta">
           VIEW PROJECTS
         </button>
-        <button onClick={() => setActiveSection("about")} className="hud-btn hud-btn-ghost">
+        <button onClick={() => setActiveSection("about")} className="hud-cta ghost">
           ABOUT ME
         </button>
       </div>
-      <div className="hud-stats">
-        <div className="hud-stat-item">
-          <span className="hud-stat-num">3+</span>
-          <span className="hud-stat-lbl">YRS EXP</span>
-        </div>
-        <div className="hud-stat-item">
-          <span className="hud-stat-num">10+</span>
-          <span className="hud-stat-lbl">PROJECTS</span>
-        </div>
-        <div className="hud-stat-item">
-          <span className="hud-stat-num">5+</span>
-          <span className="hud-stat-lbl">TECH</span>
-        </div>
+      <div className="hud-stat-row">
+        <Stat val="3+" lbl="YRS EXP" />
+        <Stat val="10+" lbl="PROJECTS" />
+        <Stat val="5+" lbl="TECH" />
       </div>
+    </div>
+  );
+}
+
+function Stat({ val, lbl }: { val: string; lbl: string }) {
+  return (
+    <div className="hud-stat">
+      <span className="hud-stat-val">{val}</span>
+      <span className="hud-stat-lbl">{lbl}</span>
     </div>
   );
 }
 
 function AboutView() {
   return (
-    <div className="hud-about">
-      <h2 className="hud-section-heading">ABOUT ME</h2>
-      <p className="hud-body-text">
-        A software engineer who merges design with engineering to build products
-        that feel magical. Specializing in interactive web experiences, 3D
-        rendering, and modern front-end architectures.
+    <div className="hud-view">
+      <h2 className="hud-heading">ABOUT ME</h2>
+      <p className="hud-dim" style={{ marginBottom: 14 }}>
+        A software engineer who merges design with engineering — specializing in
+        interactive 3D web experiences and modern front-end architectures.
       </p>
-      <div className="hud-skills-row">
-        <div className="hud-skill-col">
-          <h3 className="hud-skill-heading">CORE STACK</h3>
-          <ul className="hud-skill-ul">
-            <li><span className="hud-pip cyan" /> React / Next.js</li>
-            <li><span className="hud-pip cyan" /> TypeScript</li>
-            <li><span className="hud-pip cyan" /> Three.js / R3F</li>
-            <li><span className="hud-pip cyan" /> Tailwind CSS</li>
-          </ul>
-        </div>
-        <div className="hud-skill-col">
-          <h3 className="hud-skill-heading">ALSO</h3>
-          <ul className="hud-skill-ul">
-            <li><span className="hud-pip purple" /> Node.js / Express</li>
-            <li><span className="hud-pip purple" /> UI / UX Design</li>
-            <li><span className="hud-pip purple" /> PostgreSQL</li>
-            <li><span className="hud-pip purple" /> Git / CI·CD</li>
-          </ul>
-        </div>
+      <div className="hud-row gap-12">
+        <SkillCol title="CORE STACK" color="cyan" items={["React / Next.js", "TypeScript", "Three.js / R3F", "Tailwind CSS"]} />
+        <SkillCol title="ALSO" color="purple" items={["Node.js / Express", "UI / UX Design", "PostgreSQL", "Git / CI·CD"]} />
       </div>
+    </div>
+  );
+}
+
+function SkillCol({ title, color, items }: { title: string; color: string; items: string[] }) {
+  return (
+    <div className="hud-skill-col">
+      <h3 className="hud-sub-heading">{title}</h3>
+      {items.map((item) => (
+        <div key={item} className="hud-skill-row">
+          <span className={`hud-pip ${color}`} />
+          <span>{item}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -176,19 +158,21 @@ function ProjectsView() {
     { title: "Project Alpha", desc: "Real-time collaborative editor with WebSockets.", tags: ["React", "Node.js", "WS"] },
     { title: "Project Beta", desc: "AI image generation tool using diffusion models.", tags: ["Python", "Next.js", "AI"] },
     { title: "Project Gamma", desc: "3D product configurator for e-commerce.", tags: ["Three.js", "R3F", "TS"] },
-    { title: "Project Delta", desc: "Mobile social platform with real-time messaging.", tags: ["RN", "Firebase", "Redux"] },
+    { title: "Project Delta", desc: "Mobile social platform with real-time chat.", tags: ["RN", "Firebase", "Redux"] },
   ];
 
   return (
-    <div className="hud-projects">
-      <h2 className="hud-section-heading">PROJECTS</h2>
-      <div className="hud-project-grid">
+    <div className="hud-view">
+      <h2 className="hud-heading">PROJECTS</h2>
+      <div className="hud-data-strips">
         {projects.map((p, i) => (
-          <div key={i} className="hud-project-card">
-            <span className="hud-project-idx">0{i + 1}</span>
-            <h3 className="hud-project-name">{p.title}</h3>
-            <p className="hud-project-desc">{p.desc}</p>
-            <div className="hud-tag-row">
+          <div key={i} className="hud-strip">
+            <span className="hud-strip-idx">0{i + 1}</span>
+            <div className="hud-strip-body">
+              <span className="hud-strip-title">{p.title}</span>
+              <span className="hud-strip-desc">{p.desc}</span>
+            </div>
+            <div className="hud-strip-tags">
               {p.tags.map((t) => (
                 <span key={t} className="hud-tag">{t}</span>
               ))}
@@ -208,18 +192,18 @@ function ContactView() {
   ];
 
   return (
-    <div className="hud-contact">
-      <h2 className="hud-section-heading">CONTACT</h2>
-      <p className="hud-body-text" style={{ marginBottom: 20 }}>
+    <div className="hud-view">
+      <h2 className="hud-heading">CONTACT</h2>
+      <p className="hud-dim" style={{ marginBottom: 14 }}>
         Open to new projects, collaborations, and creative challenges.
       </p>
-      <div className="hud-contact-stack">
+      <div className="hud-data-strips">
         {links.map((l) => (
-          <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="hud-link-card">
-            <div className="hud-link-icon">{l.icon}</div>
-            <div>
-              <div className="hud-link-label">{l.label}</div>
-              <div className="hud-link-value">{l.value}</div>
+          <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="hud-strip link">
+            <span className="hud-strip-idx">{l.icon}</span>
+            <div className="hud-strip-body">
+              <span className="hud-strip-title">{l.label}</span>
+              <span className="hud-strip-desc">{l.value}</span>
             </div>
           </a>
         ))}
